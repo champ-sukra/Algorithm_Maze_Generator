@@ -195,7 +195,8 @@ public class NormalMaze extends Maze {
 
 	
 	@Override
-	public void drawFtPrt(Cell cell) {
+	public void drawFtPrt(Cell cell) {		
+		
  		// record every cell drawn
  		isRecorded[cell.r][cell.c] = true;
 

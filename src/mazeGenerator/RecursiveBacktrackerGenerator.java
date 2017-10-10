@@ -1,55 +1,96 @@
 package mazeGenerator;
 
 import java.util.ArrayList;
-import java.util.Random;
-
+import java.util.Collections;
+import java.util.HashMap;
 import maze.Cell;
 import maze.Maze;
-import maze.Wall;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
 	@Override
 	public void generateMaze(Maze maze) {
 				
-		//Random cell from the neighbors of initial cell
-		ArrayList<Cell> cells = new ArrayList<Cell>();
-		for (Cell cell : maze.entrance.neigh) {
-			if (cell != null) {
-				System.out.println("c : " + cell.c);
-				System.out.println("r : " + cell.r);
-				System.out.println("r : " + cell.wall);				
-				cells.add(cell);
-			}			
-		}
-		
-		Cell exit = maze.exit; 
-		
-		Cell setCell = null;
-		while (setCell == null || setCell != exit) {
-			setCell = this.settingUpWall(cells);
-			
-			cells.clear();
-			for (Cell cell : setCell.neigh) {
-				if (cell != null) {								
-					cells.add(cell);
-				}			
-			}
-		}				
+		//Getting a exit cell for stop looping
+		Cell entrance = maze.entrance;		
+		this.traverse(entrance, maze);	
 		
 	} // end of generateMaze()
 	
-	private Cell settingUpWall(ArrayList<Cell> aCells) {
-		Random rand = new Random();
-		int  n = rand.nextInt(aCells.size());
-		Cell cell = aCells.get(n);
-		ArrayList<Wall> walls = new ArrayList<Wall>();
-		for (Wall wall : cell.wall) {
-			walls.add(wall);	
+	private void traverse(Cell aEntrance, Maze aMaze) {		
+		HashMap<String, Cell> traversalOrder = new HashMap<String, Cell>();
+		traversalOrder.put(String.valueOf(aEntrance.c) + "-" + String.valueOf(aEntrance.r), aEntrance);		
+		
+		System.out.println("c : " + aEntrance.c);
+		System.out.println("r : " + aEntrance.r);
+		
+		//Getting neighbor from random		
+		ArrayList<Cell> neighbors = new ArrayList<Cell>();		
+		for (Cell cell : aEntrance.neigh) { //0, 2
+			if (cell != null) {
+				if (!traversalOrder.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
+					neighbors.add(cell);
+				}
+			}			
+		}
+		
+		Collections.shuffle(neighbors);
+		
+		for (Cell cell : neighbors) {
+			if (!traversalOrder.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
+				this.markDirection(aEntrance, cell);
+				this.dfs(cell, traversalOrder);
+			}	
+		}
+	}
+	
+	private void dfs(Cell aNeighbor, HashMap<String, Cell> aOrders) {
+		System.out.println("c : " + aNeighbor.c);
+		System.out.println("r : " + aNeighbor.r);
+		
+		ArrayList<Cell> neighbors = new ArrayList<Cell>();		
+		for (Cell cell : aNeighbor.neigh) { //0, 2
+			if (cell != null) {
+				neighbors.add(cell);				
+			}			
+		}
+		
+		Collections.shuffle(neighbors);
+		aOrders.put(String.valueOf(aNeighbor.c) + "-" + String.valueOf(aNeighbor.r), aNeighbor);
+		
+		for (Cell cell : neighbors) {
+			if (!aOrders.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
+				this.markDirection(aNeighbor, cell);
+				this.dfs(cell, aOrders);
+			}		
+		}
+	}
+	
+	private void markDirection(Cell aEntrance, Cell aNeighbor) {
+
+		//Comparing both cells
+		//moving east
+		int direction = 0;
+		if (aNeighbor.c + 1 == aEntrance.c) {
+			System.out.println("Go East");
+			direction = Maze.EAST;			
+		}
+		//moving west
+		else if (aNeighbor.c - 1 == aEntrance.c) {
+			System.out.println("Go West");
+			direction = Maze.WEST;
+		}
+		//moving north
+		else if (aNeighbor.r + 1 == aEntrance.r) {
+			System.out.println("Go North");
+			direction = Maze.NORTH;
+		}
+		//moving south
+		else if (aNeighbor.r - 1 == aEntrance.r) {
+			System.out.println("Go South");
+			direction = Maze.SOUTH;
 		}		
-		Wall wall = walls.get(0);
-		wall.present = false;
-		return cell;
+		aNeighbor.wall[direction].present = false;
 	}
 
 } // end of class RecursiveBacktrackerGenerator
