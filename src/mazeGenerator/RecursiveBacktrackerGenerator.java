@@ -62,7 +62,6 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 	}
 	
 	private void markDirection(Cell aEntrance, Cell aNeighbor) {
-
 		//Comparing both cells
 		int direction = 0;
 		if (aNeighbor.c == aEntrance.c + 1) {
