@@ -35,13 +35,8 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 		}
 		
 		Collections.shuffle(neighbors);
-		
-		for (Cell cell : neighbors) {
-			if (!traversalOrder.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
-				this.markDirection(aEntrance, cell);
-				this.dfs(cell, traversalOrder);
-			}	
-		}
+		this.markDirection(aEntrance, neighbors.get(0));
+		this.dfs(neighbors.get(0), traversalOrder);
 	}
 	
 	private void dfs(Cell aNeighbor, HashMap<String, Cell> aOrders) {
@@ -69,28 +64,24 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 	private void markDirection(Cell aEntrance, Cell aNeighbor) {
 
 		//Comparing both cells
-		//moving east
 		int direction = 0;
-		if (aNeighbor.c + 1 == aEntrance.c) {
+		if (aNeighbor.c == aEntrance.c + 1) {
 			System.out.println("Go East");
 			direction = Maze.EAST;			
 		}
-		//moving west
-		else if (aNeighbor.c - 1 == aEntrance.c) {
+		else if (aNeighbor.c == aEntrance.c - 1) {
 			System.out.println("Go West");
 			direction = Maze.WEST;
 		}
-		//moving north
-		else if (aNeighbor.r + 1 == aEntrance.r) {
-			System.out.println("Go North");
-			direction = Maze.NORTH;
-		}
-		//moving south
-		else if (aNeighbor.r - 1 == aEntrance.r) {
+		else if (aNeighbor.r == aEntrance.r - 1) {
 			System.out.println("Go South");
 			direction = Maze.SOUTH;
+		}
+		else if (aNeighbor.r == aEntrance.r + 1) {
+			System.out.println("Go North");			
+			direction = Maze.NORTH;
 		}		
-		aNeighbor.wall[direction].present = false;
+		aEntrance.wall[direction].present = false;
 	}
 
 } // end of class RecursiveBacktrackerGenerator
