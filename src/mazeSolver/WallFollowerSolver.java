@@ -2,6 +2,7 @@ package mazeSolver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 import maze.Cell;
 import maze.Maze;
@@ -16,9 +17,11 @@ public class WallFollowerSolver implements MazeSolver {
 	private int directions[];
 	private boolean solved = false;
 	
-	HashMap<String, Object> markingIntersection = new HashMap<String, Object>();
+	private Stack<HashMap<String, Object>> stackIntersection = new Stack<HashMap<String, Object>>();
+	
 	int nVisited = 0;
 	int nTrying = 0;
+	int currentDirection = 100; //Start
 	
 	@Override
 	public void solveMaze(Maze maze) {
@@ -48,14 +51,9 @@ public class WallFollowerSolver implements MazeSolver {
     private void performWallFollower(Cell aEntrance, Cell aExit, Maze aMaze, boolean aTurn90Degree) {
     	while (this.solved != true) {   
         	boolean canWalk = false;
-
-        	//Surrender
-        	if (this.nTrying > 5) {
-        		break;
-        	}
         	
 			if (aTurn90Degree) {
-				int direction = (int) this.markingIntersection.get("direction");
+				int direction = this.currentDirection;
 				if (direction == Maze.EAST) {
 					direction = Maze.WEST;
 				}
@@ -82,22 +80,24 @@ public class WallFollowerSolver implements MazeSolver {
 	    			}    			
 	    		}
 	    		
-	    		//Marking intersection
-	    		if (walls.size() > 2) {	    			
-	    			this.markingIntersection.put("cell", aEntrance);
-	    		}
-	    		
 				for (int i = 0; i < this.directions.length; i++) {				
 					int direction = this.directions[i];
 					this.nTrying++;
 					if (aEntrance.wall[direction].present == false && (!this.marked[aEntrance.neigh[direction].r][aEntrance.neigh[direction].c] || aEntrance == aMaze.entrance)) {
+						
 						if (walls.size() > 2) {
 							walls.remove(aEntrance.wall[direction]);
-							this.markingIntersection.put("walls", walls);
+							
+							//Marking intersection
+							HashMap<String, Object> markingIntersection = new HashMap<String, Object>();			    			
+							markingIntersection.put("cell", aEntrance);
+							markingIntersection.put("walls", walls);
+							this.stackIntersection.push(markingIntersection);
+							
 						}
 						Cell goToCell = aEntrance.neigh[direction];
 						this.markDirectionFrom(direction);
-						this.markingIntersection.put("direction", new Integer(direction));
+						this.currentDirection = direction;
 						this.marked[goToCell.r][goToCell.c] = true;
 						this.nVisited++;
 						this.nTrying = 0;
@@ -114,7 +114,10 @@ public class WallFollowerSolver implements MazeSolver {
 			}			
 			
 			if (!canWalk) {
-				aEntrance = (Cell) this.markingIntersection.get("cell");
+				System.out.println(this.stackIntersection.size());
+				HashMap<String, Object> markingIntersection = (HashMap<String, Object>) this.stackIntersection.pop();
+				System.out.println(this.stackIntersection.size());
+				aEntrance = (Cell) markingIntersection.get("cell");
 				this.performWallFollower(aEntrance, aExit, aMaze, true);
 				break;
 			}
