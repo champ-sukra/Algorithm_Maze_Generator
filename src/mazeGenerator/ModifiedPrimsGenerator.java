@@ -19,11 +19,11 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
 		this.addFrontiersFrom(entrance);		
 		
 		//Step 2
-		this.test();	
+		this.performPrimsAlgorithm();	
 		
 	} // end of generateMaze()
 
-	private void test () {
+	private void performPrimsAlgorithm () {
 		
 		while (this.frontiers.size() > 0) {
 			Collections.shuffle(frontiers);
