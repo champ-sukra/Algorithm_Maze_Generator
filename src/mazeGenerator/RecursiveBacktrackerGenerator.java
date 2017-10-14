@@ -1,9 +1,7 @@
 package mazeGenerator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import maze.Cell;
@@ -11,19 +9,21 @@ import maze.Maze;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
-	List<Integer> directions;
+	int[] directions;
 			
 	@Override
-	public void generateMaze(Maze maze) {
-				
-		boolean[][] marked = new boolean[maze.sizeR][maze.sizeC];
-		this.initMarked(marked, maze.sizeR, maze.sizeC);
-		
-		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL){
-			directions = new ArrayList<Integer>(Arrays.asList(Maze.EAST, Maze.NORTH, Maze.WEST, Maze.SOUTH));
-		}
+	public void generateMaze(Maze maze) {						
+			
+		boolean[][] marked = null;
+		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
+			marked = new boolean[maze.sizeR][maze.sizeC];
+			this.initMarked(marked, maze.sizeR, maze.sizeC);
+			this.directions = new int[] {Maze.EAST, Maze.NORTH, Maze.WEST, Maze.SOUTH};
+		} 
 		else {
-//			this.direction = new int[]{Maze.EAST, Maze.NORTHEAST, Maze.NORTHWEST, Maze.WEST,Maze.SOUTHWEST, Maze.SOUTHEAST};
+			marked = new boolean[maze.sizeR][maze.sizeC + ((maze.sizeR + 1) / 2)];
+			this.initMarked(marked, maze.sizeR, (maze.sizeR + 1) / 2);
+			this.directions = new int[] {Maze.EAST, Maze.NORTHEAST, Maze.NORTHWEST, Maze.WEST,Maze.SOUTHWEST, Maze.SOUTHEAST};
 		}
 		
 		//Getting a exit cell for stop looping
@@ -34,53 +34,29 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 			currentCell = maze.map[randomR][randomC];
 		}
 		
-		this.dfs(currentCell, marked);		
+		this.dfs(maze, currentCell, marked);		
 		
 	} // end of generateMaze()
 
-	private void dfs(Cell aNeighbor, boolean[][] aMarked) {
+	private void dfs(Maze aMaze, Cell aNeighbor, boolean[][] aMarked) {
 		System.out.println("c : " + aNeighbor.c);
 		System.out.println("r : " + aNeighbor.r);			
 		
+		List<Integer> randomDirection = new LinkedList<Integer>();
+		for (int direction : this.directions){
+			randomDirection.add(direction);
+		}
+		Collections.shuffle(randomDirection);
+		
 		aMarked[aNeighbor.r][aNeighbor.c] = true;
 		
-		ArrayList<Cell> neighbors = new ArrayList<Cell>();		
-		for (Cell cell : aNeighbor.neigh) { //0, 2
-			if (cell != null) {
-				neighbors.add(cell);				
-			}			
-		}
-		
-		Collections.shuffle(neighbors);
-		
-		for (Cell neighbor : neighbors) {
-			if (!aMarked[neighbor.r][neighbor.c]) {
-				this.markDirection(aNeighbor, neighbor);
-				this.dfs(neighbor, aMarked);
-			}		
+		for (Integer direction : randomDirection) {
+			Cell neighbor = aNeighbor.neigh[direction];
+			if (neighbor != null && !aMarked[neighbor.r][neighbor.c]) {
+				aNeighbor.wall[direction].present = false;
+				this.dfs(aMaze, neighbor, aMarked);
+			}
 		}		
-	}
-	
-	private void markDirection(Cell aEntrance, Cell aNeighbor) {
-		//Comparing both cells
-		int direction = 0;
-		if (aNeighbor.c == aEntrance.c + 1) {
-			System.out.println("Go East");
-			direction = Maze.EAST;			
-		}
-		else if (aNeighbor.c == aEntrance.c - 1) {
-			System.out.println("Go West");
-			direction = Maze.WEST;
-		}
-		else if (aNeighbor.r == aEntrance.r - 1) {
-			System.out.println("Go South");
-			direction = Maze.SOUTH;
-		}
-		else if (aNeighbor.r == aEntrance.r + 1) {
-			System.out.println("Go North");			
-			direction = Maze.NORTH;
-		}		
-		aEntrance.wall[direction].present = false;
 	}
 
 	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {
