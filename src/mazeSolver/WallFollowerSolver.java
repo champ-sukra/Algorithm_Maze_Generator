@@ -20,7 +20,6 @@ public class WallFollowerSolver implements MazeSolver {
 	private Stack<HashMap<String, Object>> stackIntersection = new Stack<HashMap<String, Object>>();
 	
 	int nVisited = 0;
-	int nTrying = 0;
 	int currentDirection = 100; //Start
 	
 	@Override
@@ -82,7 +81,6 @@ public class WallFollowerSolver implements MazeSolver {
 	    		
 				for (int i = 0; i < this.directions.length; i++) {				
 					int direction = this.directions[i];
-					this.nTrying++;
 					if (aEntrance.wall[direction].present == false && (!this.marked[aEntrance.neigh[direction].r][aEntrance.neigh[direction].c] || aEntrance == aMaze.entrance)) {
 						
 						if (walls.size() > 2) {
@@ -100,7 +98,6 @@ public class WallFollowerSolver implements MazeSolver {
 						this.currentDirection = direction;
 						this.marked[goToCell.r][goToCell.c] = true;
 						this.nVisited++;
-						this.nTrying = 0;
 						aEntrance = goToCell;
 						canWalk = true;
 						aMaze.drawFtPrt(goToCell);

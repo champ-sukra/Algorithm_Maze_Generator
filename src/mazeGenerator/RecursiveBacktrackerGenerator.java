@@ -1,47 +1,48 @@
 package mazeGenerator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+
 import maze.Cell;
 import maze.Maze;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
+	List<Integer> directions;
+			
 	@Override
 	public void generateMaze(Maze maze) {
 				
-		//Getting a exit cell for stop looping
-		Cell entrance = maze.entrance;		
-		this.traverse(entrance, maze);	
+		boolean[][] marked = new boolean[maze.sizeR][maze.sizeC];
+		this.initMarked(marked, maze.sizeR, maze.sizeC);
 		
-	} // end of generateMaze()
-	
-	private void traverse(Cell aEntrance, Maze aMaze) {		
-		HashMap<String, Cell> traversalOrder = new HashMap<String, Cell>();
-		traversalOrder.put(String.valueOf(aEntrance.c) + "-" + String.valueOf(aEntrance.r), aEntrance);		
-		
-		System.out.println("c : " + aEntrance.c);
-		System.out.println("r : " + aEntrance.r);
-		
-		//Getting neighbor from random		
-		ArrayList<Cell> neighbors = new ArrayList<Cell>();		
-		for (Cell cell : aEntrance.neigh) { //0, 2
-			if (cell != null) {
-				if (!traversalOrder.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
-					neighbors.add(cell);
-				}
-			}			
+		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL){
+			directions = new ArrayList<Integer>(Arrays.asList(Maze.EAST, Maze.NORTH, Maze.WEST, Maze.SOUTH));
+		}
+		else {
+//			this.direction = new int[]{Maze.EAST, Maze.NORTHEAST, Maze.NORTHWEST, Maze.WEST,Maze.SOUTHWEST, Maze.SOUTHEAST};
 		}
 		
-		Collections.shuffle(neighbors);
-		this.markDirection(aEntrance, neighbors.get(0));
-		this.dfs(neighbors.get(0), traversalOrder);
-	}
-	
-	private void dfs(Cell aNeighbor, HashMap<String, Cell> aOrders) {
+		//Getting a exit cell for stop looping
+		Cell currentCell = null;
+		while (currentCell == null) {
+			int randomR = randomWithRange(0, maze.sizeR);
+			int randomC = randomWithRange(0, maze.sizeC);
+			currentCell = maze.map[randomR][randomC];
+		}
+		
+		this.dfs(currentCell, marked);		
+		
+	} // end of generateMaze()
+
+	private void dfs(Cell aNeighbor, boolean[][] aMarked) {
 		System.out.println("c : " + aNeighbor.c);
-		System.out.println("r : " + aNeighbor.r);
+		System.out.println("r : " + aNeighbor.r);			
+		
+		aMarked[aNeighbor.r][aNeighbor.c] = true;
 		
 		ArrayList<Cell> neighbors = new ArrayList<Cell>();		
 		for (Cell cell : aNeighbor.neigh) { //0, 2
@@ -51,14 +52,13 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 		}
 		
 		Collections.shuffle(neighbors);
-		aOrders.put(String.valueOf(aNeighbor.c) + "-" + String.valueOf(aNeighbor.r), aNeighbor);
 		
-		for (Cell cell : neighbors) {
-			if (!aOrders.containsKey(String.valueOf(cell.c) + "-" + String.valueOf(cell.r))) {
-				this.markDirection(aNeighbor, cell);
-				this.dfs(cell, aOrders);
+		for (Cell neighbor : neighbors) {
+			if (!aMarked[neighbor.r][neighbor.c]) {
+				this.markDirection(aNeighbor, neighbor);
+				this.dfs(neighbor, aMarked);
 			}		
-		}
+		}		
 	}
 	
 	private void markDirection(Cell aEntrance, Cell aNeighbor) {
@@ -83,4 +83,16 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 		aEntrance.wall[direction].present = false;
 	}
 
+	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {
+		for (int i = 0; i < aSizeR; i++) {
+			for (int j = 0; j < aSizeC; j++) {
+				aMarked[i][j] = false;
+			}
+		}	
+    }
+	 
+	private int randomWithRange(int aMin, int aMax) {
+		int range = (aMax - aMin);
+		return (int)(Math.random() * range) + aMin;
+	}
 } // end of class RecursiveBacktrackerGenerator
