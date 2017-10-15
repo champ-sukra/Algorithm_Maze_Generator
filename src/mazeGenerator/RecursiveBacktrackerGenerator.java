@@ -12,8 +12,8 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 	int[] directions;
 			
 	@Override
-	public void generateMaze(Maze maze) {						
-			
+	public void generateMaze(Maze maze) {								
+		
 		boolean[][] marked = null;
 		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
 			marked = new boolean[maze.sizeR][maze.sizeC];
@@ -27,10 +27,11 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 		}
 		
 		//Getting a exit cell for stop looping
+		int sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
 		Cell currentCell = null;
 		while (currentCell == null) {
 			int randomR = randomWithRange(0, maze.sizeR);
-			int randomC = randomWithRange(0, maze.sizeC);
+			int randomC = randomWithRange(0, sizeC);
 			currentCell = maze.map[randomR][randomC];
 		}
 		

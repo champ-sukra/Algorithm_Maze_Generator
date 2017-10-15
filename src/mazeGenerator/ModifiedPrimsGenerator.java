@@ -11,12 +11,20 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
 		ArrayList<Cell> frontiers = new ArrayList<Cell>();
 		
 	@Override
-	public void generateMaze(Maze maze) {
+	public void generateMaze(Maze maze) {		
+		
+		int sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
 		
 		//Step 1
-		Cell entrance = maze.entrance;
-		this.addVisited(entrance);		
-		this.addFrontiersFrom(entrance);		
+		Cell currentCell = null;
+		while (currentCell == null) {
+			int randomR = randomWithRange(0, maze.sizeR);
+			int randomC = randomWithRange(0, sizeC);
+			currentCell = maze.map[randomR][randomC];
+		}
+				
+		this.addVisited(currentCell);		
+		this.addFrontiersFrom(currentCell);		
 		
 		//Step 2
 		this.performPrimsAlgorithm();	
@@ -24,7 +32,7 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
 	} // end of generateMaze()
 
 	private void performPrimsAlgorithm () {
-		
+				
 		while (this.frontiers.size() > 0) {
 			Collections.shuffle(frontiers);
 			
@@ -39,7 +47,8 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
 					Cell neighbor = cellB.neigh[i];
 					if (cellC == neighbor) {
 						isFound = true;
-						this.markDirection(cellB, cellC);
+						
+						cellB.wall[i].present = false;
 						
 						//Step3
 						this.addVisited(cellC);
@@ -66,25 +75,31 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
 		}
 	}
 	
-	private void markDirection(Cell aEntrance, Cell aNeighbor) {
-		//Comparing both cells
-		int direction = 0;
-		if (aNeighbor.c == aEntrance.c + 1) {
-			System.out.println("Go East");
-			direction = Maze.EAST;			
-		}
-		else if (aNeighbor.c == aEntrance.c - 1) {
-			System.out.println("Go West");
-			direction = Maze.WEST;
-		}
-		else if (aNeighbor.r == aEntrance.r - 1) {
-			System.out.println("Go South");
-			direction = Maze.SOUTH;
-		}
-		else if (aNeighbor.r == aEntrance.r + 1) {
-			System.out.println("Go North");			
-			direction = Maze.NORTH;
-		}		
-		aEntrance.wall[direction].present = false;
+	private int randomWithRange(int aMin, int aMax) {
+		int range = (aMax - aMin);
+		return (int)(Math.random() * range) + aMin;
 	}
+	
+//	private void markDirection(Maze aMaze, Cell aEntrance, Cell aNeighbor) {
+//		//Comparing both cells
+//		int direction = 0;
+//		
+//		if (aNeighbor.c == aEntrance.c + 1) {
+//			System.out.println("Go East");
+//			direction = Maze.EAST;			
+//		}
+//		else if (aNeighbor.c == aEntrance.c - 1) {
+//			System.out.println("Go West");
+//			direction = Maze.WEST;
+//		}
+//		else if (aNeighbor.r == aEntrance.r - 1) {
+//			System.out.println("Go South");
+//			direction = Maze.SOUTH;
+//		}
+//		else if (aNeighbor.r == aEntrance.r + 1) {
+//			System.out.println("Go North");			
+//			direction = Maze.NORTH;
+//		}		
+//		aEntrance.wall[direction].present = false;
+//	}
 } // end of class ModifiedPrimsGenerator
