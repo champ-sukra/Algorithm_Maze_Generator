@@ -26,15 +26,22 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 	@Override
 	public void solveMaze(Maze maze) {		
 
-		boolean[][] markedEn = new boolean[maze.sizeR][maze.sizeC];
-		boolean[][] markedEx = new boolean[maze.sizeR][maze.sizeC];
+		Integer sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
 		
-		this.initMarked(markedEn, maze.sizeR, maze.sizeC);
-		this.initMarked(markedEx, maze.sizeR, maze.sizeC);
-		
-//		this.start.add(maze.entrance);
-//		this.exit.add(maze.exit);
-		
+		boolean[][] markedEn = null;
+		boolean[][] markedEx = null;
+		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
+			boolean[][] marked = new boolean[maze.sizeR][sizeC];
+			this.initMarked(marked, maze.sizeR, sizeC);
+		} 
+		else {
+			markedEn = new boolean[maze.sizeR][sizeC];
+			markedEx = new boolean[maze.sizeR][sizeC];
+			
+			this.initMarked(markedEn, maze.sizeR, sizeC);
+			this.initMarked(markedEx, maze.sizeR, sizeC);			
+		}	
+				
 		this.start = maze.entrance;
 		this.exit = maze.exit;
 		
@@ -211,173 +218,3 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 	} // end of cellsExplored()
 
 } // end of class BiDirectionalRecursiveBackTrackerSolver
-
-
-/*package mazeSolver;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
-import java.util.Stack;
-
-import maze.Cell;
-import maze.Maze;
-import maze.Wall;
-
-/**
- * Implements the BiDirectional recursive backtracking maze solving algorithm.
- *
-public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {	
-	
-	private boolean isSolved = false;
-	private int nVisited = 0;
-//	private Stack<Queue<Cell>> stackIntersectionEn = new Stack<Queue<Cell>>();
-//	private Stack<Queue<Cell>> stackIntersectionEx = new Stack<Queue<Cell>>();
-	private Queue<Cell> start, exit;
-	
-	@Override
-	public void solveMaze(Maze maze) {		
-
-		boolean[][] markedEn = new boolean[maze.sizeR][maze.sizeC];
-		boolean[][] markedEx = new boolean[maze.sizeR][maze.sizeC];
-		
-		this.initMarked(markedEn, maze.sizeR, maze.sizeC);
-		this.initMarked(markedEx, maze.sizeR, maze.sizeC);
-		
-		start = new ArrayDeque<Cell>();
-		exit = new ArrayDeque<Cell>();
-		
-		this.start.add(maze.entrance);
-		this.exit.add(maze.exit);
-		
-//		this.stackIntersectionEn.push(this.start);		
-//		this.stackIntersectionEx.push(this.exit);
-		
-		this.performDfs(this.start, this.exit, maze, markedEn, markedEx, true);
-	} // end of solveMaze()
-
-
-	
-	public void performDfs(Queue<Cell> aEntrance1, Queue<Cell> aEntrance2, Maze aMaze, boolean[][] aMarked1, boolean[][] aMarked2, boolean aIsNewMoves) {
-		
-//		if (aEntrance1.poll().c == aEntrance2.poll().c && aEntrance1.poll().r == aEntrance2.poll().r) {
-//			this.isSolved = true;
-//			return;
-//		}
-						
-		Cell aEntrance = (aIsNewMoves == true) ? aEntrance1.peek() : aEntrance2.peek(); 
-		boolean[][] aMarked = (aIsNewMoves == true) ? aMarked1 : aMarked2;		
-			
-		boolean moved = false;
-		while (!moved) {
-			
-			Queue<Cell> goTo = this.dfs(aEntrance, aMarked, aMaze, aIsNewMoves);
-			if (goTo != null) {
-				aIsNewMoves = !aIsNewMoves;	
-				moved = true;
-				this.performDfs((aIsNewMoves == false)? goTo : aEntrance1, (aIsNewMoves == false)? aEntrance2 : goTo, aMaze, aMarked1, aMarked2, aIsNewMoves);
-				break;
-			}
-			
-			if (!moved) {
-				//BackTrack
-				Cell lastInterection = null;				
-				
-				if (aIsNewMoves) {					
-					for (int i = 0; i < this.start.size(); i++) {
-						lastInterection = (Cell) this.start.remove();
-						System.out.println("back to : " + lastInterection.r + "," + lastInterection.c);
-						goTo = this.dfs(lastInterection, aMarked, aMaze, aIsNewMoves);
-						if (goTo != null) {
-							break;
-						}
-					}					
-					moved = true;
-				}
-				else {
-					for (int i = 0; i < this.exit.size(); i++) {
-						lastInterection = (Cell) this.exit.remove();
-						System.out.println("back to : " + lastInterection.r + "," + lastInterection.c);
-						goTo = this.dfs(lastInterection, aMarked, aMaze, aIsNewMoves);
-						if (goTo != null) {
-							break;
-						}
-					}					
-					moved = true;
-				}	
-				
-				if (aIsNewMoves)
-					System.out.println("1 -- moved");
-				else
-					System.out.println("2 -- moved");
-				if (moved) {
-					//Switch turn
-					aIsNewMoves = !aIsNewMoves;							
-				}
-				this.performDfs((aIsNewMoves == false)? goTo : aEntrance1, (aIsNewMoves == false)? aEntrance2 : goTo, aMaze, aMarked1, aMarked2, aIsNewMoves);
-			}
-		}		
-	}	
-	
-	private Queue<Cell> dfs(Cell aEntrance, boolean[][] aMarked, Maze aMaze, boolean aIsNewMoves) {
-		aMaze.drawFtPrt(aEntrance);
-		
-		HashMap<Integer, Wall> walls = new HashMap<Integer, Wall>();		
-		for (int i = 0; i < aEntrance.wall.length; i++) {
-			Wall wall = aEntrance.wall[i];
-			if (wall != null && wall.present == false) {
-				walls.put(new Integer(i), wall);
-			}
-		}
-
-		List<Integer> keys = new ArrayList<Integer>(walls.keySet());
-		Collections.shuffle(keys);
-		
-		Cell goTo = null;
-		for (int direction : keys) {
-			goTo = aEntrance.neigh[direction];								
-			if (!aMarked[goTo.r][goTo.c]) {					
-				
-				aMarked[aEntrance.r][aEntrance.c] = true;				
-				nVisited++;
-				
-				if (aIsNewMoves) {
-					this.start.add(goTo);	
-					return this.start;
-				}
-				else {
-					this.exit.add(goTo);
-					return this.exit;
-				}
-//				
-//				aEntrance.add(goTo);
-//				return aEntrance;
-			}	
-		}
-		return null;
-	}
-	
-	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {
-		for (int i = 0; i < aSizeR; i++) {
-			for (int j = 0; j < aSizeC; j++) {
-				aMarked[i][j] = false;
-			}
-		}	
-    }
-	
-	@Override
-	public boolean isSolved() {
-		return this.isSolved;
-	} // end if isSolved()
-
-
-	@Override
-	public int cellsExplored() {
-		return this.nVisited;
-	} // end of cellsExplored()
-
-} // end of class BiDirectionalRecursiveBackTrackerSolver
-*/
