@@ -1,5 +1,5 @@
-normal
-growingTree none
-20 20
+hex
+recurBack biDirrecurBack
+30 30
 5 0
-0 19
+29 29

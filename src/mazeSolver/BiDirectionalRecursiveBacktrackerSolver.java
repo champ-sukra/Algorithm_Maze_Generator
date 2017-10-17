@@ -9,6 +9,7 @@ import java.util.Stack;
 
 import maze.Cell;
 import maze.Maze;
+import maze.StdDraw;
 import maze.Wall;
 
 /**
@@ -37,10 +38,8 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 		this.start = maze.entrance;
 		this.exit = maze.exit;
 		
-		this.stackIntersectionEn.push(this.start);	
-		maze.drawFtPrt(start);
-		this.stackIntersectionEx.push(this.exit);
-		maze.drawFtPrt(exit);
+		this.reset(maze, true);					
+		this.reset(maze, false);
 		
 		this.performDfs(this.start, this.exit, maze, markedEn, markedEx, true);
 	} // end of solveMaze()
@@ -76,15 +75,25 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 			}
 			
 			if (!moved) {
+				aMarked[aEntrance.r][aEntrance.c] = true;
+				
 				//BackTrack
 				Cell lastInterection = null;				
 				
 				if (aIsNewMoves) {					
 					while (!this.stackIntersectionEn.isEmpty()) {
-						lastInterection = (Cell) this.stackIntersectionEn.pop();
-						System.out.println("back to : " + lastInterection.r + "," + lastInterection.c);
+						Cell last = this.stackIntersectionEn.lastElement();
+						if (last.equals(this.start)) {
+							lastInterection = last;
+						}
+						else {
+							lastInterection = (Cell) this.stackIntersectionEn.pop();
+						}						
+						StdDraw.setPenColor(StdDraw.WHITE);
+						StdDraw.filledCircle(lastInterection.c + 0.5, lastInterection.r + 0.5, 0.25);
 						goTo = this.dfs(lastInterection, aMarked, aMaze, aIsNewMoves);
 						if (goTo != null) {
+							this.stackIntersectionEn.push(lastInterection);
 							break;
 						}
 					}					
@@ -92,10 +101,18 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 				}
 				else {
 					while (!this.stackIntersectionEx.empty()) {
-						lastInterection = (Cell) this.stackIntersectionEx.pop();
-						System.out.println("back to : " + lastInterection.r + "," + lastInterection.c);
+						Cell last = this.stackIntersectionEx.lastElement();
+						if (last.equals(this.exit)) {
+							lastInterection = last;
+						}
+						else {
+							lastInterection = (Cell) this.stackIntersectionEx.pop();
+						}	
+						StdDraw.setPenColor(StdDraw.WHITE);
+						StdDraw.filledCircle(lastInterection.c + 0.5, lastInterection.r + 0.5, 0.25);
 						goTo = this.dfs(lastInterection, aMarked, aMaze, aIsNewMoves);
 						if (goTo != null) {
+							this.stackIntersectionEx.push(lastInterection);
 							break;
 						}
 					}	
@@ -116,13 +133,15 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 	}	
 	
 	private Cell dfs(Cell aEntrance, boolean[][] aMarked, Maze aMaze, boolean aIsNewMoves) {				
-		if (aEntrance == null) {
+		if (aEntrance == null) {			
 			if (aIsNewMoves) {
 				aEntrance = this.start;
+				this.reset(aMaze, aIsNewMoves);
 			}
 			else {
 				aEntrance = this.exit;
-			}
+				this.reset(aMaze, aIsNewMoves);
+			}			
 		}
 		HashMap<Integer, Wall> walls = new HashMap<Integer, Wall>();		
 		for (int i = 0; i < aEntrance.wall.length; i++) {
@@ -140,7 +159,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 			goTo = aEntrance.neigh[direction];								
 			if (!aMarked[goTo.r][goTo.c]) {					
 				
-				aMarked[aEntrance.r][aEntrance.c] = true;
+				aMarked[aEntrance.r][aEntrance.c] = true;				
 				aMaze.drawFtPrt(goTo);
 				nVisited++;
 				
@@ -159,6 +178,17 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 			}	
 		}
 		return null;
+	}
+	
+	private void reset(Maze aMaze, boolean aNewMove) {
+		if (aNewMove) {
+			this.stackIntersectionEn.push(this.start);	
+			aMaze.drawFtPrt(start);
+		}		
+		else {
+			this.stackIntersectionEx.push(this.exit);
+			aMaze.drawFtPrt(exit);
+		}		
 	}
 	
 	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {

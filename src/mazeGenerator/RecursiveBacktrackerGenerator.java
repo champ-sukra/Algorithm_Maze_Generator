@@ -14,20 +14,21 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 	@Override
 	public void generateMaze(Maze maze) {								
 		
+		int sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
+
 		boolean[][] marked = null;
 		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
-			marked = new boolean[maze.sizeR][maze.sizeC];
-			this.initMarked(marked, maze.sizeR, maze.sizeC);
+			marked = new boolean[maze.sizeR][sizeC];
+			this.initMarked(marked, maze.sizeR, sizeC);
 			this.directions = new int[] {Maze.EAST, Maze.NORTH, Maze.WEST, Maze.SOUTH};
 		} 
 		else {
-			marked = new boolean[maze.sizeR][maze.sizeC + ((maze.sizeR + 1) / 2)];
-			this.initMarked(marked, maze.sizeR, (maze.sizeR + 1) / 2);
+			marked = new boolean[maze.sizeR][sizeC];
+			this.initMarked(marked, maze.sizeR, sizeC);
 			this.directions = new int[] {Maze.EAST, Maze.NORTHEAST, Maze.NORTHWEST, Maze.WEST,Maze.SOUTHWEST, Maze.SOUTHEAST};
 		}
 		
 		//Getting a exit cell for stop looping
-		int sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
 		Cell currentCell = null;
 		while (currentCell == null) {
 			int randomR = randomWithRange(0, maze.sizeR);
@@ -57,7 +58,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 				aNeighbor.wall[direction].present = false;
 				this.dfs(aMaze, neighbor, aMarked);
 			}
-		}		
+		}
 	}
 
 	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {
