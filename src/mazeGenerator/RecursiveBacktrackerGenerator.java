@@ -10,11 +10,12 @@ import maze.Maze;
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
 	int[] directions;
-			
+	int tunnel = 99;
+	
 	@Override
 	public void generateMaze(Maze maze) {								
 		
-		int sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
+		int sizeC = maze.type == Maze.HEX? maze.sizeC + ((maze.sizeR + 1) / 2) :  maze.sizeC;
 
 		boolean[][] marked = null;
 		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
@@ -43,22 +44,32 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 	private void dfs(Maze aMaze, Cell aNeighbor, boolean[][] aMarked) {
 		System.out.println("c : " + aNeighbor.c);
 		System.out.println("r : " + aNeighbor.r);			
-		
+				
 		List<Integer> randomDirection = new LinkedList<Integer>();
 		for (int direction : this.directions){
 			randomDirection.add(direction);
 		}
+		
 		Collections.shuffle(randomDirection);
 		
 		aMarked[aNeighbor.r][aNeighbor.c] = true;
-		
-		for (Integer direction : randomDirection) {
-			Cell neighbor = aNeighbor.neigh[direction];
-			if (neighbor != null && !aMarked[neighbor.r][neighbor.c]) {
-				aNeighbor.wall[direction].present = false;
+
+		Cell neighbor = null;
+		if (aNeighbor.tunnelTo != null) {
+			neighbor = aNeighbor.tunnelTo;
+			if (!aMarked[neighbor.r][neighbor.c]) {
 				this.dfs(aMaze, neighbor, aMarked);
 			}
 		}
+		for (Integer direction : randomDirection) {
+			neighbor = aNeighbor.neigh[direction];
+			if (neighbor != null && !aMarked[neighbor.r][neighbor.c]) {
+				if (direction != this.tunnel) {
+					aNeighbor.wall[direction].present = false;
+				}
+				this.dfs(aMaze, neighbor, aMarked);
+			}						
+		}	
 	}
 
 	private void initMarked(boolean[][] aMarked, int aSizeR, int aSizeC) {

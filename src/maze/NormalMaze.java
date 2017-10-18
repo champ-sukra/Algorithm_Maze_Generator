@@ -41,8 +41,19 @@ public class NormalMaze extends Maze {
 	 * @return True if in the maze. Otherwise false.
 	 */
 	protected boolean isIn(Cell cell) {
-		if (cell == null)
+		if (cell == null) {
+			System.out.println("cell null");
 			return false;
+		}
+		boolean check = isIn(cell.r, cell.c);
+		System.out.println("row : " + cell.r + ", col : " + cell.r);
+		System.out.println("true");
+		if (check) {			
+			System.out.println("true");
+		}
+		else {
+			System.out.println("false");
+		}
 		return isIn(cell.r, cell.c);
 	} // end of isIn()
 	

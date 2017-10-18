@@ -34,6 +34,7 @@ public class TunnelMaze extends NormalMaze {
 			Cell cell = queue.poll();
 			Cell next = null;
 			visited[cell.r][cell.c] = true;
+			System.out.println("visited : " + cell.r + ", "+ cell.c);
 			int visitedNeigh = 0;
 			if (cell.tunnelTo != null) {
 				next = cell.tunnelTo;
@@ -46,10 +47,14 @@ public class TunnelMaze extends NormalMaze {
 				next = cell.neigh[i];
 				if (!isIn(next) || cell.wall[i].present)
 					continue;
-				if (visited[next.r][next.c])
+				if (visited[next.r][next.c]) {
+					if (visitedNeigh == 1) {
+						System.out.println("debug");
+					}
 					visitedNeigh += 1; 
-				else
+				} else {
 					queue.add(next);
+				}
 			}
 			
 			if (visitedNeigh > 1)

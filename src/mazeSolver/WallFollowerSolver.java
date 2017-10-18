@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import maze.Cell;
 import maze.Maze;
+import maze.StdDraw;
 import maze.Wall;
 
 /**
@@ -24,12 +25,12 @@ public class WallFollowerSolver implements MazeSolver {
 	@Override
 	public void solveMaze(Maze maze) {
 		
-		Integer sizeC = maze.type == Maze.NORMAL? maze.sizeC : maze.sizeC + ((maze.sizeR + 1) / 2);
+		Integer sizeC = maze.type == Maze.HEX? maze.sizeC + ((maze.sizeR + 1) / 2) : maze.sizeC;
 		
 		boolean[][] marked = null;
 		if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
-			marked = new boolean[maze.sizeR][maze.sizeC];
-			this.initMarked(marked, maze.sizeR, maze.sizeC);
+			marked = new boolean[maze.sizeR][sizeC];
+			this.initMarked(marked, maze.sizeR, sizeC);
 			this.directions = new Integer[] {Maze.SOUTH, Maze.EAST, Maze.WEST, Maze.NORTH};
 		} 
 		else {
@@ -49,92 +50,125 @@ public class WallFollowerSolver implements MazeSolver {
 	} // end of solveMaze()    
     
     private void performWallFollower(Cell aEntrance, Cell aExit, Maze aMaze, boolean[][] aMarked, boolean aTurn90Degree, boolean aStart) {
+    	boolean walkThroughTunnal = false;
+
     	while (this.solved != true) {   
         	boolean canWalk = false;
         	
 			if (aTurn90Degree) {
-				Integer direction = this.currentDirection;
-				if (direction == Maze.EAST) {
-					direction = Maze.WEST;
-				}
-				else if (direction == Maze.WEST) {
-					direction = Maze.EAST;
-				}
-				else if (direction == Maze.NORTH) {
-					direction = Maze.NORTH;
-				}
-				else if (direction == Maze.NORTH) {
-					direction = Maze.NORTH;
-				}
-				else if (direction == Maze.NORTHEAST) {
-					direction = Maze.SOUTHWEST;
-				}
-				else if (direction == Maze.SOUTHWEST) {
-					direction = Maze.NORTHEAST;
-				}
-				else if (direction == Maze.NORTHWEST) {
-					direction = Maze.SOUTHEAST;
-				}
-				else if (direction == Maze.SOUTHEAST) {
-					direction = Maze.NORTHWEST;
-				}
+				int direction = this.switchDirectionFrom(this.currentDirection);
 				
 				this.markDirectionFrom(aMaze, direction);
 				this.performWallFollower(aEntrance, aExit, aMaze, aMarked, false, false);
 				break;
 				
 			}
-			else {	//keep walking to directions
-				
-				ArrayList<Wall> walls = new ArrayList<Wall>();		
-	    		for (Wall wall : aEntrance.wall) { //0, 2
-	    			if (wall != null && wall.present == false) {
-	    				walls.add(wall);
-	    			}    			
+			else {	//keep walking to directions	
+	    		Cell goToCell = null;
+	    		if (aMaze.type == Maze.TUNNEL && aEntrance.tunnelTo != null && !walkThroughTunnal) {
+	    			HashMap<String, Object> markingIntegerersection = new HashMap<String, Object>();			    			
+					markingIntegerersection.put("cell", aEntrance);
+					this.stackIntegerersection.push(markingIntegerersection);
+					
+	    			goToCell = aEntrance.tunnelTo;
+	    			canWalk = true;
+	    			walkThroughTunnal = true;
 	    		}
-	    		
-				for (Integer i = 0; i < this.directions.length; i++) {				
-					Integer direction = this.directions[i];
-					if (aEntrance.wall[direction].present == false && (!aMarked[aEntrance.neigh[direction].r][aEntrance.neigh[direction].c] || aEntrance == aMaze.entrance)) {
-						
-						if (walls.size() > 2 || aStart) {
-							walls.remove(aEntrance.wall[direction]);
+	    		else {	    			
+	    			walkThroughTunnal = false;
+	    			ArrayList<Wall> walls = new ArrayList<Wall>();		
+		    		for (Wall wall : aEntrance.wall) { //0, 2
+		    			if (wall != null && wall.present == false) {
+		    				walls.add(wall);
+		    			}    			
+		    		}
+		    		
+	    			for (Integer i = 0; i < this.directions.length; i++) {				
+						Integer direction = this.directions[i];
+						if (aEntrance.wall[direction].present == false && (!aMarked[aEntrance.neigh[direction].r][aEntrance.neigh[direction].c] || aEntrance == aMaze.entrance)) {
 							
-							//Marking Integerersection
-							HashMap<String, Object> markingIntegerersection = new HashMap<String, Object>();			    			
-							markingIntegerersection.put("cell", aEntrance);
-							markingIntegerersection.put("walls", walls);
-							this.stackIntegerersection.push(markingIntegerersection);
-							
+							if (walls.size() > 2 || aStart) {
+								walls.remove(aEntrance.wall[direction]);
+								
+								//Marking intersection
+								HashMap<String, Object> markingIntegerersection = new HashMap<String, Object>();			    			
+								markingIntegerersection.put("cell", aEntrance);
+								markingIntegerersection.put("walls", walls);
+								this.stackIntegerersection.push(markingIntegerersection);
+								
+							}
+							goToCell = aEntrance.neigh[direction];
+							this.markDirectionFrom(aMaze, direction);
+							this.currentDirection = direction;	
+							canWalk = true;
+							break;
 						}
-						Cell goToCell = aEntrance.neigh[direction];
-						this.markDirectionFrom(aMaze, direction);
-						this.currentDirection = direction;
-						aMarked[goToCell.r][goToCell.c] = true;
-						this.nVisited++;
-						aEntrance = goToCell;
-						canWalk = true;
-						aMaze.drawFtPrt(goToCell);
-											
-						if (goToCell.equals(aExit)) {
-							this.solved = true;
-						}					
-						break;
 					}
-				}					
+	    		}
+	    			    		
+	    		if (canWalk) {
+					this.nVisited++;
+					aMarked[goToCell.r][goToCell.c] = true;
+					aEntrance = goToCell;
+					canWalk = true;
+					try {
+						Thread.sleep(300);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					aMaze.drawFtPrt(goToCell);
+										
+					if (goToCell.equals(aExit)) {
+						this.solved = true;
+					}
+	    		}
+	    		else {
+	    			HashMap<String, Object> hm = this.stackIntegerersection.lastElement();
+					Cell lastCell = (Cell) hm.get("cell");
+    				if (!lastCell.equals(aMaze.entrance)) {
+						this.stackIntegerersection.pop();
+					}
+    				aEntrance = lastCell;
+					StdDraw.setPenColor(StdDraw.WHITE);
+					StdDraw.filledCircle(lastCell.c + 0.5, lastCell.r + 0.5, 0.25);
+					
+    				this.performWallFollower(aEntrance, aExit, aMaze, aMarked, true, false);
+	    		}
 			}			
-			
-			if (!canWalk) {
-				HashMap<String, Object> markingIntegerersection = (HashMap<String, Object>) this.stackIntegerersection.pop();
-				aEntrance = (Cell) markingIntegerersection.get("cell");
-				this.performWallFollower(aEntrance, aExit, aMaze, aMarked, true, false);
-				break;
-			}
 		}
     }
     
+    private int switchDirectionFrom(int aDirection) {
+    	if (aDirection == Maze.EAST) {
+			return Maze.WEST;
+		}
+		else if (aDirection == Maze.WEST) {
+			return Maze.EAST;
+		}
+		else if (aDirection == Maze.NORTH) {
+			return Maze.NORTH;
+		}
+		else if (aDirection == Maze.NORTH) {
+			return Maze.NORTH;
+		}
+		else if (aDirection == Maze.NORTHEAST) {
+			return Maze.SOUTHWEST;
+		}
+		else if (aDirection == Maze.SOUTHWEST) {
+			return Maze.NORTHEAST;
+		}
+		else if (aDirection == Maze.NORTHWEST) {
+			return Maze.SOUTHEAST;
+		}
+		else if (aDirection == Maze.SOUTHEAST) {
+			return Maze.NORTHWEST;
+		}
+    	return aDirection;
+    }
+    
     private void markDirectionFrom(Maze aMaze, Integer aDirection) {
-    	if (aMaze.type == Maze.NORMAL) {
+    	if (aMaze.type == Maze.NORMAL || aMaze.type == Maze.TUNNEL) {
     		if (aDirection == Maze.EAST) { //
     			this.directions = new Integer[]{Maze.SOUTH, Maze.EAST, Maze.WEST, Maze.NORTH};
     		}
